@@ -25,7 +25,7 @@ cp .env.example .env
 | `GROUP_CHAT_ID` | 인증 메시지를 받을 그룹 채팅 ID (음수) |
 | `DATA_FILE` | 데이터 파일 경로 (기본값: `data/store.json`) |
 
-### 로컬 실행
+### 로컬 실행 테스트
 
 ```bash
 pip install -r requirements.txt
