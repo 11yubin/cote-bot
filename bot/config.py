@@ -9,5 +9,5 @@ DATA_FILE: str = os.getenv("DATA_FILE", "data/store.json")
 
 # 벌칙 기준
 PENALTY_THRESHOLD: int = 5       # 이 횟수 이하면 벌칙
-MAX_DAYS_PER_WEEK: int = 7       # 주당 최대 인증 가능 횟수
+MAX_DAYS_PER_WEEK: int = 6       # 주당 목표 인증 횟수
 PENALTY_PER_MISS: int = 5_000    # 미달 1회당 벌금 (원)

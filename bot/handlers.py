@@ -12,7 +12,7 @@ from telegram.ext import ContextTypes
 
 from bot.config import DATA_FILE
 from bot.storage import Storage
-from bot.utils import KST, contains_today, today_kst
+from bot.utils import KST, contains_today, logical_date, today_kst
 
 logger = logging.getLogger(__name__)
 storage = Storage(DATA_FILE)
@@ -32,7 +32,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         return
 
     # 봇이 오프라인이던 동안 쌓인 오래된 메시지 무시
-    if message.date.astimezone(KST).date() != today_kst():
+    if logical_date(message.date.astimezone(KST)) != today_kst():
         return
 
     user = message.from_user

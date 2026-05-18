@@ -9,8 +9,15 @@ def now_kst() -> datetime:
     return datetime.now(KST)
 
 
+def logical_date(dt: datetime) -> date:
+    """04:00 ~ 익일 03:59를 하루로 간주. 04:00 이전이면 전날 날짜 반환."""
+    if dt.hour < 4:
+        return dt.date() - timedelta(days=1)
+    return dt.date()
+
+
 def today_kst() -> date:
-    return now_kst().date()
+    return logical_date(now_kst())
 
 
 def today_str() -> str:
