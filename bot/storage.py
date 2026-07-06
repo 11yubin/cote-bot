@@ -4,6 +4,7 @@ JSON 파일 기반 영속성 레이어.
 store.json 구조:
 {
   "week_start": "2026-05-04",          # 현재 주 월요일 (ISO 형식)
+  "theme": "BFS/DFS",                  # 이번 주 테마 (미설정 시 빈 문자열)
   "users": {
     "<user_id>": {
       "name": "홍길동",
@@ -52,6 +53,7 @@ class Storage:
     def _empty(self) -> dict:
         return {
             "week_start": this_monday().isoformat(),
+            "theme": "",
             "users": {},
             "prev_week": {},
         }
@@ -110,6 +112,18 @@ class Storage:
     def get_week_start(self) -> str:
         return self._load()["week_start"]
 
+    # ── 주차 테마 ─────────────────────────────────────────────────────────
+
+    def get_theme(self) -> str:
+        """이번 주 테마 문자열. 미설정 시 빈 문자열."""
+        return self._load().get("theme", "")
+
+    def set_theme(self, theme: str) -> None:
+        data = self._load()
+        data["theme"] = theme
+        self._save(data)
+        logger.info("이번 주 테마 설정: %s", theme)
+
     def get_all_users(self) -> dict:
         """{ user_id: {name, username, weekly_count, certified_dates} }"""
         return self._load()["users"]
@@ -137,6 +151,7 @@ class Storage:
 
         new_data = {
             "week_start": this_monday().isoformat(),
+            "theme": "",  # 새 주차는 테마 초기화 (매주 새로 설정)
             "users": {
                 uid: {
                     "name": u["name"],

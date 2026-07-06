@@ -2,8 +2,9 @@
 코딩테스트 인증봇 진입점.
 
 핸들러 등록 순서 (python-telegram-bot은 등록 순서대로 평가):
-  1. CommandHandler("/현황") → handle_status
-  2. MessageHandler(PHOTO)  → handle_photo
+  1. CommandHandler("status") → handle_status
+  2. CommandHandler("theme")  → handle_theme
+  3. MessageHandler(PHOTO)    → handle_photo
 """
 
 import logging
@@ -15,7 +16,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from zoneinfo import ZoneInfo
 
 from bot.config import BOT_TOKEN, DATA_FILE
-from bot.handlers import handle_photo, handle_status
+from bot.handlers import handle_photo, handle_status, handle_theme
 from bot.scheduler import job_announce_penalty, job_reset_week
 from bot.storage import Storage
 
@@ -47,10 +48,10 @@ async def post_init(application: Application) -> None:
         id="reset_week",
         replace_existing=True,
     )
-    # 월요일 10:00 KST: 벌칙 공지
+    # 월요일 08:00 KST: 벌칙 공지 + 이번 주 테마 리마인드
     scheduler.add_job(
         job_announce_penalty,
-        CronTrigger(day_of_week="mon", hour=10, minute=0, timezone=KST),
+        CronTrigger(day_of_week="mon", hour=8, minute=0, timezone=KST),
         args=[bot],
         id="announce_penalty",
         replace_existing=True,
@@ -58,7 +59,7 @@ async def post_init(application: Application) -> None:
 
     scheduler.start()
     application.bot_data["scheduler"] = scheduler
-    logger.info("스케줄러 시작 완료 (리셋: 월 04:30 / 공지: 월 10:00 KST)")
+    logger.info("스케줄러 시작 완료 (리셋: 월 04:30 / 공지: 월 08:00 KST)")
 
 
 async def post_shutdown(application: Application) -> None:
@@ -82,6 +83,9 @@ def main() -> None:
 
     # /현황 명령어
     app.add_handler(CommandHandler("status", handle_status))
+
+    # /theme 명령어 (설정/조회)
+    app.add_handler(CommandHandler("theme", handle_theme))
 
     # 사진이 첨부된 모든 메시지 (캡션 날짜 검사는 핸들러 내부에서 수행)
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))

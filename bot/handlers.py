@@ -54,13 +54,47 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await message.reply_text(f"✅ {user.first_name} {count}회 인증")
 
 
+async def handle_theme(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    /theme            → 이번 주 테마 조회
+    /theme <내용>     → 이번 주 테마 설정 (두 사람이 매주 직접 지정)
+    """
+    message = update.message
+    if not message:
+        return
+
+    theme = " ".join(context.args).strip()
+
+    # 인자 없음 → 조회
+    if not theme:
+        current = storage.get_theme()
+        if current:
+            await message.reply_text(f"📅 이번 주 테마: {current}")
+        else:
+            await message.reply_text(
+                "⚠️ 이번 주 테마가 아직 없어요.\n"
+                "예) /theme BFS/DFS 완전탐색"
+            )
+        return
+
+    # 인자 있음 → 설정
+    storage.set_theme(theme)
+    await message.reply_text(
+        f"📌 이번 주 테마가 \"{theme}\"(으)로 설정됐어요.\n"
+        "각자 4문제(공통 1 + 자율 3) · 주 4일 인증 💪"
+    )
+
+
 async def handle_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """/현황 → 이번 주 전체 인증 현황을 순위 형식으로 출력."""
+    """/현황 → 이번 주 테마 + 전체 인증 현황을 순위 형식으로 출력."""
     week_start = storage.get_week_start()
+    theme = storage.get_theme()
     users = storage.get_all_users()
 
+    theme_line = f"📅 이번 주 테마: {theme}" if theme else "📅 이번 주 테마: 미설정"
+
     if not users:
-        await update.message.reply_text("이번 주 인증 기록이 없습니다.")
+        await update.message.reply_text(f"{theme_line}\n\n이번 주 인증 기록이 없습니다.")
         return
 
     sorted_users = sorted(
@@ -69,7 +103,7 @@ async def handle_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         reverse=True,
     )
 
-    lines = [f"📊 이번 주 인증 현황  (기준: {week_start})\n"]
+    lines = [theme_line, f"\n📊 이번 주 인증 현황  (기준: {week_start})\n"]
     for i, u in enumerate(sorted_users, start=1):
         lines.append(f"{i}. {u['name']}: {u['weekly_count']}회")
 
