@@ -1,0 +1,28 @@
+name: cote-bot Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚀 서버 업데이트 및 cote-bot 재시작
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            cd ~/cote-bot
+
+            echo "▶️ Git Pull 실행 중..."
+            timeout 60s git pull --no-rebase --no-edit || { echo "❌ Git Pull 실패 또는 타임아웃"; exit 1; }
+
+            echo "▶️ cote-bot 재빌드 및 재시작..."
+            docker compose up -d --build cote-bot || { echo "❌ cote-bot 시작 실패"; exit 1; }
+
+            echo "✅ 배포 완료!"
