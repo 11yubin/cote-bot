@@ -2,7 +2,9 @@
 Telegram 메시지 핸들러.
 
 handle_photo  : 사진 + 당일 날짜 캡션 → 인증 처리
-handle_status : /현황 명령어 → 이번 주 인증 현황 출력
+handle_theme  : /theme 명령어 → 이번 주 테마 설정/조회
+handle_status : /status 명령어 → 이번 주 테마 + 인증 현황 출력
+handle_guide  : /guide 명령어 → 봇 사용법 안내
 """
 
 import logging
@@ -10,7 +12,7 @@ import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from bot.config import DATA_FILE
+from bot.config import DATA_FILE, MAX_DAYS_PER_WEEK, PENALTY_PER_MISS
 from bot.storage import Storage
 from bot.utils import KST, contains_today, logical_date, today_kst
 
@@ -108,3 +110,32 @@ async def handle_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         lines.append(f"{i}. {u['name']}: {u['weekly_count']}회")
 
     await update.message.reply_text("\n".join(lines))
+
+
+async def handle_guide(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """/guide → 봇 사용법 안내."""
+    text = (
+        "🤖 코테봇 사용법\n"
+        "\n"
+        "📸 인증\n"
+        "  · 그룹 채팅에 사진 전송 + 캡션에 오늘 날짜 입력\n"
+        "  · 예) 사진 + \"2026-07-06\"\n"
+        "  · 하루 1회만 인정 (중복 방지)\n"
+        "\n"
+        "📅 테마\n"
+        "  · /theme <내용>  → 이번 주 테마 설정 (예: /theme BFS/DFS)\n"
+        "  · /theme         → 이번 주 테마 조회\n"
+        "\n"
+        "📊 현황\n"
+        "  · /status  → 이번 주 테마 + 인증 순위\n"
+        "  · /guide   → 이 사용법 다시 보기\n"
+        "\n"
+        f"⚖️ 규칙 (주 {MAX_DAYS_PER_WEEK}일 인증)\n"
+        f"  · {MAX_DAYS_PER_WEEK}일 미달 시 1일당 {PENALTY_PER_MISS:,}원 벌금\n"
+        "  · 각자 4문제 (공통 1 + 자율 3)\n"
+        "\n"
+        "⏰ 자동 공지\n"
+        "  · 월요일 04:30 주차 리셋 (조용히)\n"
+        "  · 월요일 08:00 지난주 벌금 + 이번 주 테마 리마인드"
+    )
+    await update.message.reply_text(text)

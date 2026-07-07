@@ -4,7 +4,8 @@
 핸들러 등록 순서 (python-telegram-bot은 등록 순서대로 평가):
   1. CommandHandler("status") → handle_status
   2. CommandHandler("theme")  → handle_theme
-  3. MessageHandler(PHOTO)    → handle_photo
+  3. CommandHandler("guide")  → handle_guide
+  4. MessageHandler(PHOTO)    → handle_photo
 """
 
 import logging
@@ -16,7 +17,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from zoneinfo import ZoneInfo
 
 from bot.config import BOT_TOKEN, DATA_FILE
-from bot.handlers import handle_photo, handle_status, handle_theme
+from bot.handlers import handle_guide, handle_photo, handle_status, handle_theme
 from bot.scheduler import job_announce_penalty, job_reset_week
 from bot.storage import Storage
 
@@ -86,6 +87,9 @@ def main() -> None:
 
     # /theme 명령어 (설정/조회)
     app.add_handler(CommandHandler("theme", handle_theme))
+
+    # /guide 명령어 (사용법 안내)
+    app.add_handler(CommandHandler("guide", handle_guide))
 
     # 사진이 첨부된 모든 메시지 (캡션 날짜 검사는 핸들러 내부에서 수행)
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
